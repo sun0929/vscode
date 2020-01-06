@@ -52,6 +52,10 @@ export class UntitledTextEditorInput extends TextEditorInput implements IEncodin
 	) {
 		super(resource, editorService, editorGroupService, textFileService);
 
+		if (preferredMode) {
+			this.setMode(preferredMode);
+		}
+
 		this.registerListeners();
 	}
 
@@ -225,10 +229,20 @@ export class UntitledTextEditorInput extends TextEditorInput implements IEncodin
 	}
 
 	setMode(mode: string): void {
-		this.preferredMode = mode;
+		let actualMode: string | undefined = undefined;
+		if (mode === 'active-editor') {
+			// support the special 'active-editor' mode by
+			// looking up the language mode from the currently
+			// active text editor if any
+			actualMode = this.editorService.activeTextEditorMode;
+		} else {
+			actualMode = mode;
+		}
 
-		if (this.cachedModel) {
-			this.cachedModel.setMode(mode);
+		this.preferredMode = actualMode;
+
+		if (this.preferredMode && this.cachedModel) {
+			this.cachedModel.setMode(this.preferredMode);
 		}
 	}
 
